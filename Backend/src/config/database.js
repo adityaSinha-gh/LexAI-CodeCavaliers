@@ -11,4 +11,4 @@ async function main() {
 
 
 
-module.exports = mai
+module.exports = main;

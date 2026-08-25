@@ -1,10 +1,12 @@
 const mongoose = require("mongoose")
+const conversation = require("../models/conversation")
 const Schema = mongoose.Schema;
 
 const messageSchema = new Schema({
-    conversation_id:{
-        type:String,
-        required:true
+    conversation_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Conversation",
+        required: true
     },
     role:{
         type:String,

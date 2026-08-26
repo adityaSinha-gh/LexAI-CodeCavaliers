@@ -1,6 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const WrapAsync = reqiuire("../utility/WrapAsync.js")
+const validate = require("../middlewares/validate.js");
+
+const {
+    messageSchema
+} = require("../validations/conversation.message.js");
 
 const {
     createMessage,
@@ -13,6 +18,7 @@ router.post(
     "/:conversation_id",
     Auth.Authenticated,
     Auth.AuthorizationConvo,
+    validate(messageSchema),
    WrapAsync( createMessage)
 );
 

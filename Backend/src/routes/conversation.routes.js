@@ -1,6 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const WrapAsync = reqiuire("../utility/WrapAsync.js")
+const validate = require("../middlewares/validate.js");
+
+const {
+    conversationSchema
+} = require("../validations/conversation.validation.js");
 
 const {
     createConversations,
@@ -14,7 +19,7 @@ const Auth = require("../middlewares/auth.middleware.js");
 
 
 
-router.post("/", Auth.Authenticated,Auth.AuthorizationConvo ,WrapAsync( createConversations));
+router.post("/", Auth.Authenticated,Auth.AuthorizationConvo,validate(conversationSchema) ,WrapAsync( createConversations));
 
 router.get("/", Auth.Authenticated,WrapAsync(getConversations));
 

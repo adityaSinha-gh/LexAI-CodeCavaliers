@@ -1,213 +1,233 @@
-
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.js");
 const bcrypt = require("bcrypt");
-const config = require("../config/config.js")
-const cookieParser  = require("cookie-parser")
+const config = require("../config/config.js");
+const AppError = require("../utils/AppError.js");
+
+
+
 
 async function signUp(req, res) {
-    
-        const {
-            name,
-            email,
-            college,
-            year,
-            branch,
-            semester,
-            preferredLanguage,
-            password
-        } = req.body;
-        if (
-            !name ||
-            !email ||
-            !college ||
-            !year ||
-            !branch ||
-            !semester ||
-            !preferredLanguage ||
-            !password
-        ) {
-            return res.status(400).json({
-                message: "All fields are required"
-            });
-        }
 
-      
-        const existingUser = await User.findOne({ email });
+    const {
+        name,
+        email,
+        college,
+        year,
+        branch,
+        semester,
+        preferredLanguage,
+        password
+    } = req.body;
 
-        if (existingUser) {
-            return res.status(409).json({
-                message: "User with this email already exists"
-            });
-        }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        
-       const newUser =  await User.create({
-            name,
-            email,
-            password: hashedPassword,
-            college,
-            year,
-            branch,
-            semester,
-            preferredLanguage
-        });
-        
-        const accessToken = jwt.sign(
-        {
-            user_id:id
-        },config.JWT_SECRET,
-        {
-            expiresIn:"15m",
-        })
-
-        const refreshToken = jwt.sign(
-            {
-                user_id:id
-            },config.JWT_SECRET,
-            {
-                expiresIn:"7d",
-            }
-        )
-
-    res.cookie("refreshToken",refreshToken,{
-    httpOnly:true,
-    secure:process.env.NODE_ENV==="production",
-    sameSite:"strict",
-    maxAge:7*24*60*60*1000
-    } );
-
-        return res.status(201).json({
-        message:"User saved successfully",
-        accessToken,
-        newUser
-        });
-
-}
-
-async function login(req,res){
-    const {email,password} = req.query;
-    
-    const User  = User.findOne({email:email});
-    if(!User){
-        return res.json({
-            status:404,
-            success:false,
-            message:"User not found"
-
-        })
+    if (
+        !name ||
+        !email ||
+        !college ||
+        !year ||
+        !branch ||
+        !semester ||
+        !preferredLanguage ||
+        !password
+    ) {
+        throw new AppError("All fields are required", 400);
     }
 
-    const isPasswordCorrect = await bcrypt.compare(
-            password,
-            user.password
-     );
 
-     if(!isPasswordCorrect){
-        return res.status(400).json({
-            success:false,
-            message:"Wrong Password"
-        })
-     }
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+        throw new AppError(
+            "User with this email already exists",
+            409
+        );
+    }
+
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+
+    const newUser = await User.create({
+        name,
+        email,
+        password: hashedPassword,
+        college,
+        year,
+        branch,
+        semester,
+        preferredLanguage
+    });
+
 
     const accessToken = jwt.sign(
         {
-            user_id:id
-        },config.JWT_SECRET,
+            user_id: newUser._id
+        },
+        config.JWT_SECRET,
         {
-            expiresIn:"15m",
-        })
-
-        const refreshToken = jwt.sign(
-            {
-                user_id:id
-            },config.JWT_SECRET,
-            {
-                expiresIn:"7d",
-            }
-        )
-
-    res.cookie("refreshToken",refreshToken,{
-    httpOnly:true,
-    secure:process.env.NODE_ENV==="production",
-    sameSite:"strict",
-    maxAge:7*24*60*60*1000
-    } );
-
-
-
-     res.status(200).json({
-        success:true,
-        accessToken,
-        User
-     })
-
-}
-
-
-async function refreshToken(req,res){
-    const token = req.cookie.refreshToken
-    if(!token){
-        return res.status(404).json({
-            success:false,
-            message:"Invalid token"
-        })
-    }
-
-    const decoded = jwt.verify(
-            refreshToken,
-            config.JWT_SECRET
+            expiresIn: "15m"
+        }
     );
 
-    
 
-    if(!decoded){
-        return res.status(400).json({
-            success:false,
-            message:"Invalid Token"
-        })
-    }
-
-    const id = decoded.id
-
-    const accessToken = jwt.sign(
+    const refreshToken = jwt.sign(
         {
-            user_id:id
-        },config.JWT_SECRET,
+            user_id: newUser._id
+        },
+        config.JWT_SECRET,
         {
-            expiresIn:"15m",
-        })
-
-        const refreshToken = jwt.sign(
-            {
-                user_id:id
-            },config.JWT_SECRET,
-            {
-                expiresIn:"7d",
-            }
-        )
-
-    res.cookie("refreshToken",refreshToken,{
-    httpOnly:true,
-    secure:process.env.NODE_ENV==="production",
-    sameSite:"strict",
-    maxAge:7*24*60*60*1000
-    } );
+            expiresIn: "7d"
+        }
+    );
 
 
+    res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000
+    });
 
-     res.status(200).json({
-        success:true,
+
+    res.status(201).json({
+        success: true,
+        message: "User saved successfully",
         accessToken,
-        User
-     })
-
-
+        newUser
+    });
 }
 
 
 
 
-module.exports = { signUp , login,refreshToken};
+async function login(req, res) {
+
+    const { email, password } = req.body;
+
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+        throw new AppError("User not found", 404);
+    }
+
+
+    const isPasswordCorrect = await bcrypt.compare(
+        password,
+        user.password
+    );
+
+
+    if (!isPasswordCorrect) {
+        throw new AppError("Wrong password", 401);
+    }
+
+
+    const accessToken = jwt.sign(
+        {
+            user_id: user._id
+        },
+        config.JWT_SECRET,
+        {
+            expiresIn: "15m"
+        }
+    );
+
+
+    const refreshToken = jwt.sign(
+        {
+            user_id: user._id
+        },
+        config.JWT_SECRET,
+        {
+            expiresIn: "7d"
+        }
+    );
+
+
+    res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+
+    res.status(200).json({
+        success: true,
+        message: "Login successful",
+        accessToken,
+        user
+    });
+}
+
+
+
+
+async function refreshToken(req, res) {
+
+    const token = req.cookies.refreshToken;
+
+
+    if (!token) {
+        throw new AppError("Refresh token not found", 401);
+    }
+
+
+    const decoded = jwt.verify(
+        token,
+        config.JWT_SECRET
+    );
+
+
+    if (!decoded) {
+        throw new AppError("Invalid refresh token", 401);
+    }
+
+
+    const id = decoded.user_id;
+
+
+    const accessToken = jwt.sign(
+        {
+            user_id: id
+        },
+        config.JWT_SECRET,
+        {
+            expiresIn: "15m"
+        }
+    );
+
+
+    const newRefreshToken = jwt.sign(
+        {
+            user_id: id
+        },
+        config.JWT_SECRET,
+        {
+            expiresIn: "7d"
+        }
+    );
+
+
+    res.cookie("refreshToken", newRefreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+
+    res.status(200).json({
+        success: true,
+        accessToken
+    });
+}
+
+
+module.exports = {
+    signUp,
+    login,
+    refreshToken
+};

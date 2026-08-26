@@ -5,6 +5,7 @@ const message = require("../models/message.js")
 const config = require("../config/config.js")
 
 
+
 async function Authenticated(req, res, next) {
     try {
         const authHeader = req.header("Authorization");

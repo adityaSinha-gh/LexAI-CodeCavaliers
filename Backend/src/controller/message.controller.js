@@ -116,5 +116,4 @@ async function getMessages(req,res){
 module.exports = {
     createMessage,
     getMessages
-
 };

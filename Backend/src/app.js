@@ -1,10 +1,38 @@
-const express = require("express")
-const mongoose = require("mongoose")
-
-const app = express()
+const express = require("express");
+const app = express();
 
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 
 
-module.export ={app}
+
+const authRoutes = require("./routes/auth.routes.js");
+const conversationRoutes = require("./routes/conversation.routes.js");
+const messageRoutes = require("./routes/message.routes.js");
+
+app.use("/api/auth", authRoutes);
+app.use("/api/conversations", conversationRoutes);
+app.use("/api/messages", messageRoutes);
+
+
+
+
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        message: "Route not found"
+    });
+});
+
+
+
+
+const errorHandler = require("./middlewares/error.middleware.js");
+
+app.use(errorHandler);
+
+
+module.exports = app;
+

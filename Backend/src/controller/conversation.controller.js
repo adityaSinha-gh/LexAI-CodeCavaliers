@@ -93,3 +93,5 @@ async function UpdateConversation(req,res){
         convo
     })
 }
+
+module.exports = {createConversation,getConversations,getConversation,DeleteConversation,UpdateConversation}

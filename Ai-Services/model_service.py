@@ -1,47 +1,54 @@
+
 """
-Connects to a locally running Ollama model and turns it into a
-multilingual AI tutor ("LexAI").
-
-Prerequisite (one-time setup, on whichever machine runs this service):
-    1. Install Ollama: https://ollama.com/download
-    2. Pull a model, e.g.:  ollama pull llama3
-    3. Ollama runs its own local server automatically at
-       http://localhost:11434 once installed - nothing else to start.
-
-If you swap models later, just change MODEL_NAME below.
+This file is where your friend plugs in the real AI model.
+ 
+Right now both functions call a local Ollama model as a placeholder,
+so the Node backend can already connect and get real responses back.
+When the real model is ready, just replace what's INSIDE these two
+functions. Keep the function names and inputs/outputs the same, and
+main.py never needs to change.
 """
-
+ 
 import httpx
-
-OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL_NAME = "llama3"  # must match a model you've pulled with `ollama pull <name>`
-
-# This is the tutor's "personality" + instruction to always reply in the
-# student's chosen language, no matter what language they typed in.
-SYSTEM_PROMPT = (
-    "You are LexAI, a friendly and patient AI tutor for college students. "
-    "Explain concepts clearly, simply, and step by step, using examples "
-    "where helpful. Always reply in {language}, even if the student's "
-    "message was written in a different language."
-)
-
-
-async def generate_ai_response(message: str, language: str, conversation_id: str) -> str:
+ 
+OLLAMA_HOST = "http://localhost:11434"
+OLLAMA_MODEL = "llama3"
+ 
+ 
+async def generate_response(conversation_id: str, message: str) -> str:
+    """
+    Takes the student's message, returns the AI tutor's reply (a string).
+    """
+    payload = {
+        "model": OLLAMA_MODEL,
+        "prompt": message,
+        "stream": False,
+    }
+ 
+    async with httpx.AsyncClient(timeout=60) as client:
+        resp = await client.post(f"{OLLAMA_HOST}/api/generate", json=payload)
+ 
+    data = resp.json()
+    return data["response"]
+ 
+ 
+async def translate_text(text: str, target_language: str) -> str:
+    """
+    Takes text + a target language, returns the translated text (a string).
+    """
     prompt = (
-        f"{SYSTEM_PROMPT.format(language=language)}\n\n"
-        f"Student: {message}\n"
-        f"LexAI:"
+        f"Translate the following text into {target_language}. "
+        f"Return only the translated text, nothing else.\n\n{text}"
     )
-
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        response = await client.post(
-            OLLAMA_URL,
-            json={
-                "model": MODEL_NAME,
-                "prompt": prompt,
-                "stream": False,  # get the full reply in one response, not token-by-token
-            },
-        )
-        response.raise_for_status()
-        data = response.json()
-        return data["response"].strip()
+ 
+    payload = {
+        "model": OLLAMA_MODEL,
+        "prompt": prompt,
+        "stream": False,
+    }
+ 
+    async with httpx.AsyncClient(timeout=30) as client:
+        resp = await client.post(f"{OLLAMA_HOST}/api/generate", json=payload)
+ 
+    data = resp.json()
+    return data["response"].strip()

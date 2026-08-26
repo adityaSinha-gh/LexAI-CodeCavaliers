@@ -1,11 +1,9 @@
-const express = require("express")
-const User = require("../models/user.js")
-const controllers = require("../controller/auth.controller.js")
-const WrapAsync = reqiuire("../utility/WrapAsync.js")
+const express = require("express");
+const controllers = require("../controllers/auth.controller.js");
+const WrapAsync = require("../utility/WrapAsync.js");
 const validate = require("../middlewares/validate.js");
 
-const router= express.Router()
-const PORT = 3000;
+const router = express.Router();
 
 const {
     signupSchema,
@@ -13,8 +11,8 @@ const {
 } = require("../validations/auth.validation.js");
 
 
-router.post("/Signup",validate(signupSchema),WrapAsync(controllers.signUp));
-router.post("/login",validate(loginSchema),WrapAsync(controllers.login));
-router.post("/refreshToken",WrapAsync(controllers.refreshToken));
+router.post("/signup", validate(signupSchema), WrapAsync(controllers.signUp));
+router.post("/login", validate(loginSchema), WrapAsync(controllers.login));
+router.post("/refresh-token", WrapAsync(controllers.refreshToken));
 
 module.exports = router;

@@ -6,4 +6,6 @@ const conversationSchema = Joi.object({
     language: Joi.string().required()
 });
 
-module.exports = conversationSchema;
+module.exports = {
+    conversationSchema
+};

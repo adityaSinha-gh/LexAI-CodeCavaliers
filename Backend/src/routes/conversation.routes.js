@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const WrapAsync = reqiuire("../utility/WrapAsync.js")
+const WrapAsync = require("../utility/WrapAsync.js");
 const validate = require("../middlewares/validate.js");
 
 const {
@@ -8,24 +8,24 @@ const {
 } = require("../validations/conversation.validation.js");
 
 const {
-    createConversations,
+    createConversation,
     getConversations,
     getConversation,
     DeleteConversation,
     UpdateConversation
-} = require("../controllers/conversationController.js");
+} = require("../controllers/conversation.controller.js");
 
 const Auth = require("../middlewares/auth.middleware.js");
 
 
 
-router.post("/", Auth.Authenticated,Auth.AuthorizationConvo,validate(conversationSchema) ,WrapAsync( createConversations));
+router.post("/", Auth.Authenticated, validate(conversationSchema), WrapAsync(createConversation));
 
-router.get("/", Auth.Authenticated,WrapAsync(getConversations));
+router.get("/", Auth.Authenticated, WrapAsync(getConversations));
 
 router.get("/:id", Auth.Authenticated, WrapAsync(getConversation));
 
-router.patch("/:id", Auth.Authenticated,Auth.AuthorizationConvo, WrapAsync(UpdateConversation));
+router.patch("/:id", Auth.Authenticated, Auth.AuthorizationConvo, WrapAsync(UpdateConversation));
 
 router.delete("/:id", Auth.Authenticated, Auth.AuthorizationConvo, WrapAsync(DeleteConversation));
 

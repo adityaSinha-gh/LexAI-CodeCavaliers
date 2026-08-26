@@ -62,7 +62,7 @@ async function signUp(req, res) {
 
     const accessToken = jwt.sign(
         {
-            user_id: newUser._id
+            id: newUser._id
         },
         config.JWT_SECRET,
         {
@@ -73,7 +73,7 @@ async function signUp(req, res) {
 
     const refreshToken = jwt.sign(
         {
-            user_id: newUser._id
+            id: newUser._id
         },
         config.JWT_SECRET,
         {
@@ -89,12 +89,14 @@ async function signUp(req, res) {
         maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
+    const userToReturn = newUser.toObject();
+    delete userToReturn.password;
 
     res.status(201).json({
         success: true,
         message: "User saved successfully",
         accessToken,
-        newUser
+        newUser: userToReturn
     });
 }
 
@@ -126,7 +128,7 @@ async function login(req, res) {
 
     const accessToken = jwt.sign(
         {
-            user_id: user._id
+            id: user._id
         },
         config.JWT_SECRET,
         {
@@ -137,7 +139,7 @@ async function login(req, res) {
 
     const refreshToken = jwt.sign(
         {
-            user_id: user._id
+            id: user._id
         },
         config.JWT_SECRET,
         {
@@ -153,12 +155,14 @@ async function login(req, res) {
         maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
+    const userToReturn = user.toObject();
+    delete userToReturn.password;
 
     res.status(200).json({
         success: true,
         message: "Login successful",
         accessToken,
-        user
+        user: userToReturn
     });
 }
 
@@ -186,12 +190,12 @@ async function refreshToken(req, res) {
     }
 
 
-    const id = decoded.user_id;
+    const id = decoded.id;
 
 
     const accessToken = jwt.sign(
         {
-            user_id: id
+            id
         },
         config.JWT_SECRET,
         {
@@ -202,7 +206,7 @@ async function refreshToken(req, res) {
 
     const newRefreshToken = jwt.sign(
         {
-            user_id: id
+            id
         },
         config.JWT_SECRET,
         {

@@ -7,15 +7,18 @@ const WrapAsync = require("../utility/WrapAsync.js");
 const validate = require("../middlewares/validate.js");
 
 const {
-    messageSchema,
+    messageSchema
+} = require("../validations/message.validation.js");
+
+const {
     translateMessageSchema
-} = require("../validations/conversation.message.js");
+} = require("../validations/translation.validation.js");
 
 const {
     createMessage,
     getMessages,
     translateMessage
-} = require("../controllers/messageController.js");
+} = require("../controllers/message.controller.js");
 
 const Auth = require("../middlewares/auth.middleware.js");
 
@@ -30,7 +33,7 @@ router.post(
 
 
 router.get(
-    "/:id",
+    "/:conversation_id",
     Auth.Authenticated,
     WrapAsync(getMessages)
 );

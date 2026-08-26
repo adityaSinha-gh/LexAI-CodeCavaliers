@@ -1,31 +1,33 @@
-from fastapi import FastAPI, HTTPException
 
-from schemas import GenerateRequest, GenerateResponse
-from model_service import generate_ai_response
-
-app = FastAPI(title="LexAI - AI Service")
-
-
-@app.get("/health")
-def health_check():
-    """Quick check to confirm the service is up and reachable."""
-    return {"status": "ok"}
-
-
+from fastapi import FastAPI
+from schemas import GenerateRequest, GenerateResponse, TranslateRequest, TranslateResponse
+from model_service import generate_response, translate_text
+ 
+app = FastAPI()
+ 
+ 
 @app.post("/generate", response_model=GenerateResponse)
-async def generate(request: GenerateRequest):
+async def generate(payload: GenerateRequest):
     """
-    Called by the Node backend's message_controller.js after it saves
-    the student's message. We generate the AI reply and send it back
-    as plain JSON: { "response": "..." }
+    Called from message.controller.js -> createMessage()
+    body sent by Node: { conversation_id, message }
+    Node reads: data.response
     """
-    try:
-        ai_reply = await generate_ai_response(
-            message=request.message,
-            language=request.language,
-            conversation_id=request.conversation_id,
-        )
-        return GenerateResponse(response=ai_reply)
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"AI generation failed: {e}")
+    text = await generate_response(payload.conversation_id, payload.message)
+    return GenerateResponse(response=text)
+ 
+ 
+@app.post("/translate", response_model=TranslateResponse)
+async def translate(payload: TranslateRequest):
+    """
+    Called from message.controller.js -> translateMessage()
+    body sent by Node: { text, target_language }
+    Node reads: data.response
+    """
+    translated = await translate_text(payload.text, payload.target_language)
+    return TranslateResponse(response=translated)
+ 
+ 
+@app.get("/health")
+async def health():
+    return {"success": True, "status": "ok"}

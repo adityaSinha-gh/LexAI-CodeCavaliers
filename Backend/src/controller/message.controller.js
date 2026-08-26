@@ -69,9 +69,6 @@ async function getMessages(req, res) {
 
     const user_id = req.user.id;
 
-
- 
-
     const conversation = await Conversation.findOne({
         _id: conversation_id,
         user_id
@@ -86,17 +83,11 @@ async function getMessages(req, res) {
 
     }
 
-
-
-
     const messages = await Message.find({
         conversation_id
     }).sort({
         createdAt: 1
     });
-
-
-
 
     res.status(200).json({
 

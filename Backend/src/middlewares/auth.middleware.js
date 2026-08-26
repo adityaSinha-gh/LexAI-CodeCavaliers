@@ -1,8 +1,6 @@
-const jwt = require("jsonwebtoken")
-const User = require("../models/user.js")
-const Conversation = require("../models/conversation.js")
-const message = require("../models/message.js")
-const config = require("../config/config.js")
+const jwt = require("jsonwebtoken");
+const Conversation = require("../models/conversation.js");
+const config = require("../config/config.js");
 
 
 
@@ -39,10 +37,14 @@ async function Authenticated(req, res, next) {
         });
     }
 }
+
 async function AuthorizationConvo(req, res, next) {
     try {
         const userId = req.user.id;
-        const { id } = req.params;
+
+        // Different routes name this param differently
+        // (":id" for conversation routes, ":conversation_id" for message routes)
+        const id = req.params.id || req.params.conversation_id;
 
         const convo = await Conversation.findById(id);
 
@@ -53,7 +55,7 @@ async function AuthorizationConvo(req, res, next) {
             });
         }
 
-        if (userId.toString() !== convo.student_id.toString()) {
+        if (userId.toString() !== convo.user_id.toString()) {
             return res.status(403).json({
                 success: false,
                 message: "User is not authorized"
@@ -76,4 +78,4 @@ async function AuthorizationConvo(req, res, next) {
 module.exports = {
     Authenticated,
     AuthorizationConvo
-}
+};

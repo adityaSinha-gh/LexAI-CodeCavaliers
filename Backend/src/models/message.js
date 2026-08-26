@@ -1,30 +1,41 @@
-const mongoose = require("mongoose")
-const conversation = require("../models/conversation")
-const Schema = mongoose.Schema;
+const mongoose = require("mongoose");
 
-const messageSchema = new Schema({
-    conversation_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Conversation",
-        required: true
-    },
-    role:{
-        type:String,
-        required:true, 
-        enum:['user','LexAI']
-    },
-    content:{
-        type:String,
-        reqiuired:true,
+const messageSchema = new mongoose.Schema(
+    {
+        conversation_id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Conversation",
+            required: true
+        },
 
+        sender: {
+            type: String,
+            enum: ["student", "ai"],
+            required: true
+        },
+
+        content: {
+            type: String,
+            required: true
+        },
+
+        translations: [
+            {
+                language: {
+                    type: String,
+                    required: true
+                },
+
+                content: {
+                    type: String,
+                    required: true
+                }
+            }
+        ]
     },
-    language:{
-        type:String,
-        required:true,
+    {
+        timestamps: true
     }
+);
 
-},{
-    timeStamps:true
-})
-
-module.exports = mongoose.model("Message",messageSchema)
+module.exports = mongoose.model("Message", messageSchema);

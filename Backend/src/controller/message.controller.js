@@ -5,7 +5,6 @@ const AppError = require("../utils/AppError.js");
 
 
 
-
 async function createMessage(req, res) {
 
     const { conversation_id } = req.params;
@@ -13,30 +12,23 @@ async function createMessage(req, res) {
 
     const user_id = req.user.id;
 
-
-   
     const conversation = await Conversation.findOne({
         _id: conversation_id,
         user_id
     });
 
-
     if (!conversation) {
         throw new AppError("Conversation not found", 404);
     }
 
-
-    
     const studentMessage = await Message.create({
         conversation_id,
         sender: "student",
         content
     });
 
-
-   
     const response = await fetch(
-        `${config.FAST_API}/generate`,
+        `${config.FASTAPI_URI}/generate`,
         {
             method: "POST",
 
@@ -46,30 +38,23 @@ async function createMessage(req, res) {
 
             body: JSON.stringify({
                 conversation_id,
-                message: content,
-                language: conversation.language
+                message: content
             })
         }
     );
 
-
-  
     if (!response.ok) {
         throw new AppError("AI service failed", 502);
     }
 
-
     const data = await response.json();
-
-    const aiContent = data.response;
-
 
     const aiMessage = await Message.create({
         conversation_id,
         sender: "ai",
-        content: aiContent
+        content: data.response,
+        translations: []
     });
-
 
     res.status(201).json({
         success: true,
@@ -78,42 +63,157 @@ async function createMessage(req, res) {
     });
 }
 
-
-
-
 async function getMessages(req, res) {
 
-    const { id } = req.params;
+    const { conversation_id } = req.params;
+
+    const user_id = req.user.id;
+
+
+ 
+
+    const conversation = await Conversation.findOne({
+        _id: conversation_id,
+        user_id
+    });
+
+    if (!conversation) {
+
+        throw new AppError(
+            "Conversation not found",
+            404
+        );
+
+    }
+
+
+
+
+    const messages = await Message.find({
+        conversation_id
+    }).sort({
+        createdAt: 1
+    });
+
+
+
+
+    res.status(200).json({
+
+        success: true,
+
+        messages
+
+    });
+}
+
+
+
+
+async function translateMessage(req, res) {
+
+    const { message_id } = req.params;
+    const { language } = req.body;
 
     const user_id = req.user.id;
 
 
     
-    const convo = await Conversation.findOne({
-        _id: id,
+    const message = await Message.findOne({
+        _id: message_id,
+        sender: "ai"
+    });
+
+    if (!message) {
+        throw new AppError("AI message not found", 404);
+    }
+
+
+    
+    const conversation = await Conversation.findOne({
+        _id: message.conversation_id,
         user_id
     });
 
-
-    if (!convo) {
+    if (!conversation) {
         throw new AppError("Conversation not found", 404);
     }
 
 
     
-    const messages = await Message.find({
-        conversation_id: id
-    }).sort({ createdAt: 1 });
+    const existingTranslation = message.translations.find(
+        (translation) =>
+            translation.language === language
+    );
 
 
+    
+    if (existingTranslation) {
+
+        return res.status(200).json({
+            success: true,
+            message_id,
+            language,
+            translated: existingTranslation.content
+        });
+    }
+
+
+   
+    const response = await fetch(
+        `${config.FASTAPI_URI}/translate`,
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                text: message.content,
+                target_language: language
+            })
+        }
+    );
+
+
+    if (!response.ok) {
+        throw new AppError(
+            "Translation service failed",
+            502
+        );
+    }
+
+
+    const data = await response.json();
+
+
+    
+    message.translations.push({
+        language,
+        content: data.response
+    });
+
+
+    await message.save();
+
+
+   
     res.status(200).json({
         success: true,
-        messages
+        message_id,
+        language,
+        translated: data.response
     });
 }
 
 
 module.exports = {
+
     createMessage,
-    getMessages
+
+    getMessages,
+
+    translateMessage
+
 };

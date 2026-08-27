@@ -18,7 +18,7 @@ const {
     createMessage,
     getMessages,
     translateMessage
-} = require("../controllers/message.controller.js");
+} = require("../controller/message.controller.js");
 
 const Auth = require("../middlewares/auth.middleware.js");
 

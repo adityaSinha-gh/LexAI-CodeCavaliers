@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user.js");
 const bcrypt = require("bcrypt");
 const config = require("../config/config.js");
-const AppError = require("../utils/AppError.js");
+const AppError = require("../utility/AppError.js");
 
 
 

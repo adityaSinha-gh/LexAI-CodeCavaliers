@@ -1,5 +1,5 @@
 const express = require("express");
-const controllers = require("../controllers/auth.controller.js");
+const controllers = require("../controller/auth.controller.js");
 const WrapAsync = require("../utility/WrapAsync.js");
 const validate = require("../middlewares/validate.js");
 

@@ -13,7 +13,7 @@ const {
     getConversation,
     DeleteConversation,
     UpdateConversation
-} = require("../controllers/conversation.controller.js");
+} = require("../controller/conversation.controller.js");
 
 const Auth = require("../middlewares/auth.middleware.js");
 

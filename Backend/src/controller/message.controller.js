@@ -1,7 +1,7 @@
 const Message = require("../models/message.js");
 const Conversation = require("../models/conversation.js");
 const config = require("../config/config.js");
-const AppError = require("../utils/AppError.js");
+const AppError = require("../utility/AppError.js");
 
 
 

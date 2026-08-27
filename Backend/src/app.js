@@ -10,13 +10,15 @@ app.use(cookieParser());
  
  
  
-const authRoutes = require("./routes/auth.routes.js");
+const authRoutes = require("./routes/Authentication.routes.js");
 const conversationRoutes = require("./routes/conversation.routes.js");
 const messageRoutes = require("./routes/message.routes.js");
+const quizRoutes = require("./routes/quiz.routes.js")
  
 app.use("/api/auth", authRoutes);
 app.use("/api/conversations", conversationRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/quiz",quizRoutes)
  
  
  
